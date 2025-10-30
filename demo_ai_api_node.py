@@ -165,6 +165,13 @@ def demo_usage_examples():
             "provider": "generic",
             "model": "local-model",
             "description": "Local LLM with OpenAI-compatible API (e.g., LM Studio)"
+        },
+        {
+            "name": "Custom API",
+            "api_base": "https://my-custom-api.example.com/v1",
+            "provider": "custom",
+            "model": "custom-model",
+            "description": "Custom API endpoint with OpenAI format"
         }
     ]
     

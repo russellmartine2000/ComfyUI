@@ -49,6 +49,7 @@ Successfully implemented a ComfyUI custom node for AI API integration with multi
 2. **Claude**: Anthropic's Claude API (Claude 3 Opus, Sonnet, etc.)
 3. **Gemini**: Google's Gemini API (Gemini Pro, etc.)
 4. **Generic**: Any OpenAI-compatible API (OpenRouter, local LLMs, etc.)
+5. **Custom**: Custom API endpoints with OpenAI format and custom base URL
 
 ### API Request Handling
 - Async requests using `aiohttp.ClientSession`

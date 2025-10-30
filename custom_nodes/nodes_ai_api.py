@@ -33,7 +33,7 @@ class AIAPINode:
                     "default": "",
                     "tooltip": "Your API key for authentication"
                 }),
-                "provider": (["openai", "claude", "gemini", "generic"], {
+                "provider": (["openai", "claude", "gemini", "generic", "custom"], {
                     "default": "openai",
                     "tooltip": "AI provider type"
                 }),
@@ -175,7 +175,7 @@ class AIAPINode:
     def _extract_response_text(self, response_data: Dict[str, Any], provider: str) -> str:
         """Extract text from API response based on provider"""
         try:
-            if provider == "openai" or provider == "generic":
+            if provider == "openai" or provider == "generic" or provider == "custom":
                 return response_data["choices"][0]["message"]["content"]
             elif provider == "claude":
                 return response_data["content"][0]["text"]
@@ -206,7 +206,7 @@ class AIAPINode:
                 self._make_gemini_request(api_base, api_key, model, prompt,
                                          system_prompt, max_tokens, temperature)
             )
-        elif provider == "generic":
+        elif provider == "generic" or provider == "custom":
             return loop.run_until_complete(
                 self._make_generic_request(api_base, api_key, model, prompt,
                                            system_prompt, max_tokens, temperature)

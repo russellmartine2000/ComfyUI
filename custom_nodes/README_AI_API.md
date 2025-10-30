@@ -36,6 +36,14 @@ Use this for any service that provides an OpenAI-compatible API:
 - Any other OpenAI-compatible endpoint
 - Provider: `generic`
 
+### 5. Custom (OpenAI-Compatible with Custom Base URL)
+Use this for custom API endpoints that follow the OpenAI API format:
+- Custom API deployments
+- Self-hosted LLMs with OpenAI-compatible interfaces
+- Development/testing endpoints
+- Specify your own API base URL
+- Provider: `custom`
+
 ## Installation
 
 1. Copy `nodes_ai_api.py` to your ComfyUI `custom_nodes` directory
@@ -50,7 +58,7 @@ Use this for any service that provides an OpenAI-compatible API:
 - `prompt` (STRING): The text prompt to send to the AI
 - `api_base` (STRING): Base URL for the API endpoint
 - `api_key` (STRING): Your API authentication key
-- `provider` (DROPDOWN): Select from: openai, claude, gemini, generic
+- `provider` (DROPDOWN): Select from: openai, claude, gemini, generic, custom
 - `model` (STRING): The model name/identifier
 - `max_tokens` (INT): Maximum tokens to generate (1-32768)
 - `temperature` (FLOAT): Response randomness (0.0-2.0)
@@ -119,6 +127,17 @@ provider: "generic"
 model: "anthropic/claude-3-opus"
 max_tokens: 1000
 temperature: 0.7
+```
+
+### Example 6: Custom API Endpoint
+```
+prompt: "Generate a summary"
+api_base: "https://my-custom-api.example.com/v1"
+api_key: "custom-key-123"
+provider: "custom"
+model: "my-custom-model"
+max_tokens: 500
+temperature: 0.8
 ```
 
 ## Workflow Integration
