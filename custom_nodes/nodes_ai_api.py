@@ -187,6 +187,45 @@ class AIAPINode:
             logging.error(f"Error extracting response text: {e}")
             return json.dumps(response_data, indent=2)
 
+    def _run_async_request(self, loop, provider: str, api_base: str, api_key: str,
+                          model: str, prompt: str, system_prompt: str, 
+                          max_tokens: int, temperature: float) -> Dict[str, Any]:
+        """Helper to run async request in a loop"""
+        if provider == "openai":
+            return loop.run_until_complete(
+                self._make_openai_request(api_base, api_key, model, prompt, 
+                                         system_prompt, max_tokens, temperature)
+            )
+        elif provider == "claude":
+            return loop.run_until_complete(
+                self._make_claude_request(api_base, api_key, model, prompt,
+                                         system_prompt, max_tokens, temperature)
+            )
+        elif provider == "gemini":
+            return loop.run_until_complete(
+                self._make_gemini_request(api_base, api_key, model, prompt,
+                                         system_prompt, max_tokens, temperature)
+            )
+        elif provider == "generic":
+            return loop.run_until_complete(
+                self._make_generic_request(api_base, api_key, model, prompt,
+                                           system_prompt, max_tokens, temperature)
+            )
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
+
+    def _sync_request(self, provider: str, api_base: str, api_key: str,
+                     model: str, prompt: str, system_prompt: str,
+                     max_tokens: int, temperature: float) -> Dict[str, Any]:
+        """Helper to run request in a new event loop (for threaded execution)"""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return self._run_async_request(loop, provider, api_base, api_key,
+                                          model, prompt, system_prompt, max_tokens, temperature)
+        finally:
+            loop.close()
+
     def request_ai(self, prompt: str, api_base: str, api_key: str, provider: str,
                    model: str, max_tokens: int, temperature: float, 
                    system_prompt: str = "") -> Tuple[str, str]:
@@ -220,31 +259,23 @@ class AIAPINode:
             # Create event loop if needed
             try:
                 loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # Event loop is already running, we need to use a thread
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(self._sync_request, provider, api_base, api_key, 
+                                                model, prompt, system_prompt, max_tokens, temperature)
+                        response_data = future.result()
+                else:
+                    # Event loop exists but not running
+                    response_data = self._run_async_request(loop, provider, api_base, api_key,
+                                                           model, prompt, system_prompt, max_tokens, temperature)
             except RuntimeError:
+                # No event loop exists
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-            
-            # Make API request based on provider
-            if provider == "openai":
-                response_data = loop.run_until_complete(
-                    self._make_openai_request(api_base, api_key, model, prompt, 
-                                             system_prompt, max_tokens, temperature)
-                )
-            elif provider == "claude":
-                response_data = loop.run_until_complete(
-                    self._make_claude_request(api_base, api_key, model, prompt,
-                                             system_prompt, max_tokens, temperature)
-                )
-            elif provider == "gemini":
-                response_data = loop.run_until_complete(
-                    self._make_gemini_request(api_base, api_key, model, prompt,
-                                             system_prompt, max_tokens, temperature)
-                )
-            elif provider == "generic":
-                response_data = loop.run_until_complete(
-                    self._make_generic_request(api_base, api_key, model, prompt,
-                                               system_prompt, max_tokens, temperature)
-                )
+                response_data = self._run_async_request(loop, provider, api_base, api_key,
+                                                       model, prompt, system_prompt, max_tokens, temperature)
             else:
                 error_msg = f"Unsupported provider: {provider}"
                 logging.error(error_msg)
