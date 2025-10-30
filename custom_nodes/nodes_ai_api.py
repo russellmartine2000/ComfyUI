@@ -276,10 +276,6 @@ class AIAPINode:
                 asyncio.set_event_loop(loop)
                 response_data = self._run_async_request(loop, provider, api_base, api_key,
                                                        model, prompt, system_prompt, max_tokens, temperature)
-            else:
-                error_msg = f"Unsupported provider: {provider}"
-                logging.error(error_msg)
-                return (error_msg, json.dumps({"error": error_msg}))
             
             # Extract response text
             response_text = self._extract_response_text(response_data, provider)
